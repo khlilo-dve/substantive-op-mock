@@ -1,3 +1,5 @@
+use rand::distributions::{Distribution, WeightedIndex};
+use rand::thread_rng;
 use serde::{Deserialize, Serialize};
 use serde_json::{json, Value};
 
@@ -14,6 +16,25 @@ struct Playbook {
     company_name: String,
     employee_count: u32,
     actions: Vec<ActionRule>,
+}
+
+fn generate_mock_logs(playbook: &Playbook, count: usize) -> Vec<BusinessLog> {
+    let weights: Vec<u32> = playbook.actions.iter().map(|a| a.weight).collect();
+    let dist = WeightedIndex::new(&weights).expect("权重列表不能为空");
+    let mut rng = thread_rng();
+
+    (0..count)
+        .map(|_| {
+            let action = &playbook.actions[dist.sample(&mut rng)];
+            BusinessLog {
+                timestamp: "2026-03-14T10:00:00Z".to_string(),
+                employee_id: "EMP-001".to_string(),
+                ip_address: "192.168.1.1".to_string(),
+                action_type: action.name.clone(),
+                payload: json!({}),
+            }
+        })
+        .collect()
 }
 
 fn load_playbook(path: &str) -> Result<Playbook, Box<dyn std::error::Error>> {
@@ -63,7 +84,12 @@ fn main() {
     println!("--- 场景 A：跨境电商 ---\n{a}\n");
     println!("--- 场景 B：Web3 科技公司 ---\n{b}\n");
 
-    // ── 剧本加载验证 ───────────────────────────────────────────────────────────
+    // ── 剧本加载 + 采样验证 ────────────────────────────────────────────────────
     let playbook = load_playbook("playbook.yaml").expect("无法加载 playbook.yaml");
-    println!("--- 剧本解析结果 ---\n{playbook:#?}");
+    let logs = generate_mock_logs(&playbook, 10);
+
+    println!("--- 采样日志（10 条）---");
+    for (i, log) in logs.iter().enumerate() {
+        println!("[{:02}] {}", i + 1, serde_json::to_string(log).unwrap());
+    }
 }
