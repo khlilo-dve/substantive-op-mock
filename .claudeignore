@@ -1,0 +1,23 @@
+# 彻底封杀 Rust 编译产物和依赖锁，这俩是吃 Token 的黑洞
+target/
+Cargo.lock
+
+# 隐藏版本控制的底层记录
+.git/
+
+# 绝对禁止 AI 读取密钥和环境变量（安全红线）
+.env
+.env.*
+*.pem
+*.key
+
+# 屏蔽大体积日志和本地数据库
+*.log
+*.sqlite
+*.db
+
+# 为 Web3 / 智能合约开发提前占位拦截
+node_modules/
+artifacts/
+out/
+cache/
