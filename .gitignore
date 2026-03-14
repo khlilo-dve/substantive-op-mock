@@ -12,3 +12,6 @@
 # already existing elements were commented out
 
 #/target
+logs/
+CLAUDE.md
+.claudeignore
