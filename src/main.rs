@@ -1,6 +1,27 @@
 use serde::{Deserialize, Serialize};
 use serde_json::{json, Value};
 
+// ── Playbook 剧本结构 ─────────────────────────────────────────────────────────
+
+#[derive(Debug, Deserialize)]
+struct ActionRule {
+    name: String,
+    weight: u32,
+}
+
+#[derive(Debug, Deserialize)]
+struct Playbook {
+    company_name: String,
+    employee_count: u32,
+    actions: Vec<ActionRule>,
+}
+
+fn load_playbook(path: &str) -> Result<Playbook, Box<dyn std::error::Error>> {
+    let content = std::fs::read_to_string(path)?;
+    let playbook = serde_yaml::from_str(&content)?;
+    Ok(playbook)
+}
+
 #[derive(Debug, Serialize, Deserialize)]
 struct BusinessLog {
     timestamp: String,
@@ -40,5 +61,9 @@ fn main() {
     let b = serde_json::to_string_pretty(&web3_log).unwrap();
 
     println!("--- 场景 A：跨境电商 ---\n{a}\n");
-    println!("--- 场景 B：Web3 科技公司 ---\n{b}");
+    println!("--- 场景 B：Web3 科技公司 ---\n{b}\n");
+
+    // ── 剧本加载验证 ───────────────────────────────────────────────────────────
+    let playbook = load_playbook("playbook.yaml").expect("无法加载 playbook.yaml");
+    println!("--- 剧本解析结果 ---\n{playbook:#?}");
 }

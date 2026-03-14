@@ -1,0 +1,15 @@
+company_name: "SilkRoute Global Commerce"
+employee_count: 320
+actions:
+  - name: "USER_LOGIN"
+    weight: 50
+  - name: "ORDER_SUBMIT"
+    weight: 30
+  - name: "PAYMENT_CONFIRM"
+    weight: 25
+  - name: "REFUND_REQUEST"
+    weight: 10
+  - name: "ACCOUNT_UPDATE"
+    weight: 8
+  - name: "ADMIN_EXPORT"
+    weight: 2
