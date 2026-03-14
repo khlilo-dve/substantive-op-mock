@@ -3,6 +3,7 @@ use rand::distributions::{Distribution, Uniform, WeightedIndex};
 use rand::Rng;
 use serde::{Deserialize, Serialize};
 use serde_json::{json, Value};
+use std::io::Write;
 
 // ── Playbook 剧本结构 ─────────────────────────────────────────────────────────
 
@@ -101,6 +102,28 @@ fn generate_mock_logs(playbook: &Playbook, count: usize) -> Vec<BusinessLog> {
         .collect()
 }
 
+// ── 日志落盘：JSONL 追加写入 ──────────────────────────────────────────────────
+
+const LOG_PATH: &str = "logs/business_operation.log";
+
+fn flush_logs_to_file(logs: &[BusinessLog]) -> std::io::Result<()> {
+    std::fs::create_dir_all("logs")?;
+
+    let file = std::fs::OpenOptions::new()
+        .create(true)
+        .append(true)
+        .open(LOG_PATH)?;
+    let mut writer = std::io::BufWriter::new(file);
+
+    for log in logs {
+        let line = serde_json::to_string(log).expect("BusinessLog 序列化不应失败");
+        writer.write_all(line.as_bytes())?;
+        writer.write_all(b"\n")?;
+    }
+
+    Ok(())
+}
+
 // ── Playbook 加载 ─────────────────────────────────────────────────────────────
 
 fn load_playbook(path: &str) -> Result<Playbook, Box<dyn std::error::Error>> {
@@ -141,12 +164,16 @@ fn main() {
     println!("--- 场景 B：Web3 科技公司 ---");
     println!("{}\n", serde_json::to_string_pretty(&web3_log).unwrap());
 
-    // ── 剧本驱动生成 ──────────────────────────────────────────────────────────
+    // ── 剧本驱动生成 + 落盘 ───────────────────────────────────────────────────
     let playbook = load_playbook("playbook.yaml").expect("无法加载 playbook.yaml");
-    let logs = generate_mock_logs(&playbook, 20);
+    let logs = generate_mock_logs(&playbook, 1000);
 
-    println!("\n--- 仿真日志（20 条）---");
-    for (i, log) in logs.iter().enumerate() {
-        println!("[{:02}] {}", i + 1, serde_json::to_string(log).unwrap());
+    match flush_logs_to_file(&logs) {
+        Ok(()) => println!(
+            "\x1b[32m成功生成并写入 {} 条日志至 {}\x1b[0m",
+            logs.len(),
+            LOG_PATH
+        ),
+        Err(e) => eprintln!("\x1b[31m写入失败：{e}\x1b[0m"),
     }
 }
