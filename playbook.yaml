@@ -1,15 +1,48 @@
 company_name: "SilkRoute Global Commerce"
 employee_count: 320
+ip_subnet: "10.12.8"
+date_range:
+  start: "2026-03-10"
+  end: "2026-03-14"
+
 actions:
   - name: "USER_LOGIN"
     weight: 50
+    payload_fields:
+      session_id: "hex:16"
+      login_method: "choice:password:sso:oauth"
+
   - name: "ORDER_SUBMIT"
     weight: 30
+    payload_fields:
+      order_id: "order_id"
+      payment_amount: "float:10.0:9999.0"
+      currency: "choice:USD:CNY:EUR"
+      item_count: "int:1:20"
+
   - name: "PAYMENT_CONFIRM"
     weight: 25
+    payload_fields:
+      transaction_id: "hex:32"
+      payment_method: "choice:alipay:wechat:visa:mastercard"
+      amount: "float:10.0:9999.0"
+
   - name: "REFUND_REQUEST"
     weight: 10
+    payload_fields:
+      original_order_id: "order_id"
+      refund_amount: "float:10.0:500.0"
+      refund_reason: "choice:quality_issue:wrong_item:changed_mind:damaged"
+
   - name: "ACCOUNT_UPDATE"
     weight: 8
+    payload_fields:
+      change_source: "choice:user_self:admin:api"
+      field_changed: "choice:email:phone:address:password"
+
   - name: "ADMIN_EXPORT"
     weight: 2
+    payload_fields:
+      data_scope: "choice:all_users:date_range:department"
+      export_format: "choice:csv:xlsx:json"
+      record_count: "int:100:50000"
